@@ -40,13 +40,13 @@ end
 
 
 
-if isfield(bound_comp_opts,'x_L')
+%if isfield(bound_comp_opts,'x_L')
     x_L = bound_comp_opts.x_L;
     x_U = bound_comp_opts.x_U;                                        
-else
-    [x_L, x_U] = compute_hyper_rectangle(bound_comp_opts.epsilon,testPoint,...
-        bound_comp_opts.pix_2_mod,bound_comp_opts.constrain_2_one);    
-end
+%else
+%    [x_L, x_U] = compute_hyper_rectangle(bound_comp_opts.epsilon,testPoint,...
+%        bound_comp_opts.pix_2_mod,bound_comp_opts.constrain_2_one);    
+%end
 
 
 

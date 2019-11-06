@@ -1,8 +1,8 @@
 function bound_comp_opts = default_parameter_checkGP_OAT(varargin)
 bound_comp_opts.numberOfThreads  = 1;
-bound_comp_opts.tollerance = 0.02; %bound tollerance required
-bound_comp_opts.epsilons_vec = [0.2];
-bound_comp_opts.points_to_analyse_vec = [1];
+bound_comp_opts.tollerance = 0.01; %bound tollerance required
+bound_comp_opts.epsilons_vec = 0.1:0.1:1.0;
+bound_comp_opts.points_to_analyse_vec = [1:15];
 bound_comp_opts.mod_modus = 'OAT';
 bound_comp_opts.pix_2_mod = 'all';
 bound_comp_opts.constrain_2_one = false;

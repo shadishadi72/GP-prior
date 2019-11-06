@@ -32,29 +32,20 @@ switch bound_comp_opts.likmode
                     [z_i_L_vec,z_i_U_vec] = pre_compute_z_intervals(x_L,x_U,params_for_gp_toolbox.theta_vec);
                     %1 - first I compute the optimal mean value
                     if strcmp(max_or_min,'min')
-                        %[mu_star,x_mu_star] = compute_lower_bound_mu_sqe(trainedSystem,x_L,x_U,params_for_gp_toolbox.theta_vec,...
-                        %    params_for_gp_toolbox.sigma,training_data);
                         [mu_star,x_mu_star] = compute_lower_bound_mu_sqe(trainedSystem,x_L,x_U,params_for_gp_toolbox.theta_vec,...
-                            params_for_gp_toolbox.sigma,z_i_L_vec,z_i_U_vec);
+                            params_for_gp_toolbox.sigma,z_i_L_vec,z_i_U_vec,params_for_gp_toolbox.meanfunc,params_for_gp_toolbox.hyp.mean);
                         mu_flag = mu_star;
                     else
-                        %[mu_star,x_mu_star] = compute_upper_bound_mu_sqe(trainedSystem,x_L,x_U,params_for_gp_toolbox.theta_vec,...
-                        %    params_for_gp_toolbox.sigma,training_data);
                          [mu_star,x_mu_star] = compute_upper_bound_mu_sqe(trainedSystem,x_L,x_U,params_for_gp_toolbox.theta_vec,...
-                            params_for_gp_toolbox.sigma,z_i_L_vec,z_i_U_vec);
+                            params_for_gp_toolbox.sigma,z_i_L_vec,z_i_U_vec,params_for_gp_toolbox.meanfunc,params_for_gp_toolbox.hyp.mean);
                         mu_flag =  - mu_star;
                     end
                     %2 - I then compute the optimal variance value depending on
                     %the value obtained for the mean
                     if mu_flag >= 0
-                        %[sigma_star,x_sigma_star] = compute_upper_bound_sigma_sqe(x_L,x_U,params_for_gp_toolbox.theta_vec, ...
-                        %    params_for_gp_toolbox.sigma,z_i_L_vec,z_i_U_vec);
-                        
-                        %[~,~,sigma_star,x_sigma_star] = compute_upper_lower_and_bound_sigma_sqe_quad_prog(x_L,x_U,params_for_gp_toolbox.theta_vec, ...
-                        %    params_for_gp_toolbox.sigma,z_i_L_vec,z_i_U_vec,bound_comp_opts,mu_sigma_bounds,'upper');
                         [~,~,sigma_star,x_sigma_star] = compute_upper_lower_and_bound_sigma_sqe_wrapper(x_L,x_U,params_for_gp_toolbox.theta_vec, ...
                             params_for_gp_toolbox.sigma,z_i_L_vec,z_i_U_vec,bound_comp_opts,mu_sigma_bounds,'upper');
-
+                        
                         mu_sigma_bounds.sigma_u = sigma_star;
                         if ~isempty(x_sigma_star)
                             mu_sigma_bounds.x_sigma_u = x_sigma_star;
@@ -91,7 +82,7 @@ switch bound_comp_opts.likmode
         %Computing minimum and maximum values for a-posteriori mean
         aux = tic;
         [mu_l,x_mu_l] = compute_lower_bound_mu_sqe(trainedSystem,x_L,x_U,params_for_gp_toolbox.theta_vec,...
-            params_for_gp_toolbox.sigma,z_i_L_vec,z_i_U_vec);
+            params_for_gp_toolbox.sigma,z_i_L_vec,z_i_U_vec,params_for_gp_toolbox.meanfunc,params_for_gp_toolbox.hyp.mean);
         
         [mu_u,x_mu_u] = compute_upper_bound_mu_sqe(trainedSystem,x_L,x_U,params_for_gp_toolbox.theta_vec,...
             params_for_gp_toolbox.sigma,z_i_L_vec,z_i_U_vec,mu_l);
@@ -189,7 +180,7 @@ x_over_star = x_candidates(idx,:);
 try
 assert(out_l <= out_u)
 catch
-    disp('')
+    disp(' ');
 end
 end
 

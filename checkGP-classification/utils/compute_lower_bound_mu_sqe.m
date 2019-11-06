@@ -1,5 +1,5 @@
 %function [lb,x_mu_lb] = compute_lower_bound_mu_sqe(y_i_vec,x_L,x_U,theta_vec,sigma_prior,training_data)
-function [lb,x_mu_lb] = compute_lower_bound_mu_sqe(y_i_vec,x_L,x_U,theta_vec,sigma_prior,z_i_L_vec,z_i_U_vec)
+function [lb,x_mu_lb] = compute_lower_bound_mu_sqe(y_i_vec,x_L,x_U,theta_vec,sigma_prior,z_i_L_vec,z_i_U_vec,meanfunc,hyp_mean)
 
 global training_data
 global theta_vec_train_squared
@@ -18,7 +18,6 @@ b_i_vec = zeros(1,n);
 for ii = 1:n
     y_i = y_i_vec(ii);
     %x_i = training_data(ii,:);
-    %[z_i_L, z_i_U] = compute_z_interval(x_i,x_L,x_U,theta_vec);
     z_i_L = z_i_L_vec(ii);
     z_i_U = z_i_U_vec(ii);
     if z_i_L >= z_i_U
@@ -48,10 +47,11 @@ for jj = 1:m
 end
 C = 0;
 for ii = 1:n
-    %for jj = 1:m
-    %    C = C + theta_vec(jj) * b_i_vec(ii) *training_data(ii,jj)^2;
-    %end
     C = C + b_i_vec(ii) * theta_vec_train_squared(ii);
+end
+
+if isequal(meanfunc,@meanLinear)
+    f = f + hyp_mean;
 end
 
 [x_mu_lb, f_val] = separate_quadprog(H,f,x_L,x_U);

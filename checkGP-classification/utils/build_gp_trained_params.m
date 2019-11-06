@@ -6,12 +6,7 @@ global post
 % this is the vector such that latent_mu = trainedSystem*Covariance(test)
 trainedSystem = post.alpha;
 
-%Just checking I get the correct results here...
-%gp_trained_params.kernel = 'sqe';
-%gp_trained_params.mle = false;
-%gp_trained_params.sigma = exp(hyp.cov(end)).^2;  %kernel variance
-%gp_trained_params.theta_vec = 1./(2.*(exp(hyp.cov(1:(end-1))).^2));   %lengthscales
-%
+
 %Checking Variance here
 S = - post.L(eye(n_tr,n_tr));
 
