@@ -3,9 +3,13 @@ function [X_train,y_train,X_test,y_test] = data_loading_cpt_cvx(cp_cvx,rest_cvx,
 
 % features to use 
 %SMNA(max),SMNA(nom),'tonic(mean)','edasymp'
-%feature_order=['SMNA(max)';'SMNA(sum)';'SMNA(nom);'phasic(mean)';'phasic(std)';'tonic(mean)';'tonic(std)';'tonic(max)'];
+%feature_order=['SMNA(max)';'SMNA(sum)';'SMNA(nom)';'phasic(mean)';'phasic(std)';'tonic(mean)';'tonic(std)';'tonic(max)'];
 cp=cell2mat(cp_cvx);
 rest=cell2mat(rest_cvx);
+
+% reduce 
+
+
 
 %adding edasymp 
 cp_edasymp=cell2mat(cold_new_zscore')';
@@ -27,6 +31,10 @@ rest_edasymp_mean=nanmean_sh(rest_edasymp,2);
 % adding to fetaure list 
 cp(:,9)=cp_edasymp_mean;
 rest(:,9)=rest_edasymp_mean;
+
+% to make eda signals and features the same subjects 
+% cp=cp([2:5,7:10,12:17,19:21,23:end],:);
+% rest=rest([2:5,7:10,12:17,19:21,23:end],:);
 
 % excluding subjects by plot checking 
 % cp=cp([1:5,7,9,11:18,20,22:24,28],:);
@@ -52,7 +60,7 @@ no_sub=size(rest,1);
 %
 %% division 
 
-divide_train=14;
+divide_train=no_sub/2;
 divide_test=no_sub-divide_train;
 
 X_train=zeros(divide_train*2,no_feat);

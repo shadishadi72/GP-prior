@@ -5,14 +5,7 @@ clc
 
 addpath(genpath('checkGP-classification/'))
 
-% EDA and HRV%
 load('all_feat_gp.mat')
-%% just EDA%% 
-load('/Users/shadi/Desktop/GP-prior/cpt_cvx_features/feat_eda_cold_rest.mat')
-load('/Users/shadi/Desktop/GP-prior/cpt_cvx_features/feat_eda_cold.mat')
-load('/Users/shadi/Desktop/GP-prior/cpt_cvx_features/cold_rest_new_zscore.mat')
-load('/Users/shadi/Desktop/GP-prior/cpt_cvx_features/cold_new_zscore.mat')
-
 rng(1)
 %GP model parameters
 likfunc = @likErf; %link function
@@ -20,49 +13,19 @@ infFun = @infEP; %inference method
 
 train_iter = 10;
 
-
-
-[X_train_hrv,y_train_hrv,X_test_hrv,y_test_hrv] = data_loading_cpt(all_feat_gp);
-[X_train_eda,y_train_eda,X_test_eda,y_test_eda] = data_loading_cpt_cvx(feat_eda_cold,feat_eda_cold_rest,cold_new_zscore,cold_rest_new_zscore);
-% HRV only% 
-% X_train=X_train(:,[1:5]);
-% X_test=X_test(:,[1:5]);
-
-
-
-
-
-% EDA standard and HRV standard%  I have to exclude sub 3 and 23 from
-% standard EDA% 
-X_train_eda=X_train_eda([1:2,4:17,19:end],:); % 3,18 
-X_test_eda=X_test_eda([1:8,10:23,25:end],:); % 9,24
-% eda standard+edasymp + hrv+edahf
-X_train=[X_train_hrv,X_train_eda(:,[1:8])];
-X_test=[X_test_hrv,X_test_eda(:,[1:8])];
-
-y_train=y_train_hrv;
-y_test=y_test_hrv;
-
-
-
-% Zscore normalization%
-% X_train=my_zscore(X_train);
-% X_test=my_zscore(X_test);
-
-% max-min normalization%
+[X_train,y_train,X_test,y_test] = data_loading_cpt(all_feat_gp);
 % [X_train,X_test] = normalise_train_test(X_train,X_test);
 
 
 %% training of the GP
 disp('Training GP')
- meanfunc = @meanZero;
-% meanfunc = @meanLinear;
-
+%meanfunc = @meanLinear;
+meanfunc = @meanLinear;
 covfunc = @covSEard;
 ell = 1.0;
 sf = 1.0;
 hyp.cov = log([ones(1,size(X_train,2))*ell, sf]);
-% hyp.mean = log(ones(size(X_train,2),1));
+hyp.mean = log(ones(size(X_train,2),1));
 hyp = minimize(hyp, @gp, -train_iter, infFun, meanfunc, covfunc, likfunc, X_train, y_train);
 [a, b, c, pred_var, lp, post_local] = gp(hyp, infFun, meanfunc, ...
     covfunc, likfunc, X_train, y_train, X_test, ones(size(X_test,1), 1));
@@ -72,25 +35,11 @@ pred_labels = zeros(size(y_test));
 pred_labels(exp(lp) >= 0.5) = 1;
 pred_labels(exp(lp) < 0.5) = -1;
 acc = sum(pred_labels == y_test)/length(y_test);
+disp(acc)
 cd=confusionmat(pred_labels,y_test)
 se=cd(1,1)/(size(X_train,1)/2);
 sp=cd(2,2)/(size(X_train,1)/2);
-
-if acc<0.5
-    acc=1-acc;
-    se=1-se;
-    sp=1-sp;
-   
-end
-res=[se,sp,acc];
-
-disp(res) 
-
-
-% if acc<0.5
-% res=1-res;
-% end
-% disp(res)
+res=[se,sp,acc]
 
 %%%%%%%%%%%
 %Check-GP%%

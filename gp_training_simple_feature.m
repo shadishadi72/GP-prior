@@ -2,7 +2,8 @@ run('toolbox/gpml-matlab-master/startup.m')
 clear all %#ok<CLALL>
 close all
 clc
-
+addpath('/Users/shadi/Desktop/GP-prior')
+addpath('/Users/shadi/Desktop/GP-prior/cpt_cvx_features')
 rng(1)
 %GP model parameters
 likfunc = @likErf; %link function
@@ -12,7 +13,7 @@ infFun = @infEP; %infLaplace %inference method
 load('eda_cp_rest_red_mat.mat')
 load('eda_cp_red_mat.mat')
 %  for i=1:100
-i=10;
+i=15;
 train_iter = i;
 % single point 
 %  [X_train,y_train,X_test,y_test] = data_loading_cpt(all_feat_gp);
@@ -91,4 +92,5 @@ pred_labels(exp(lp) >= 0.5) = 1;
 pred_labels(exp(lp) < 0.5) = -1;
 acc(1) = sum(pred_labels == y_test)/length(y_test);
 % end
+i
 disp(acc)

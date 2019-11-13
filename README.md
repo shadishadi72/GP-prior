@@ -1,3 +1,3 @@
 # GP-prior
-In the sturcture file there are 7 features for 26 subjects. each feature is the time series of 361 lenght representing 361 seconds.
-The first 180 samples is for the resting phasen (Class 1) and from 181:360 is the CP phase (Class 2). 
+The training data is from 28 subjects with 9 features ( Features related to CvxEDA and EDASYMP). The 2 classes are cold pressor vs resting. The features are averaged along the 2 minutes time duration for each class. 
+The best model obtained has the accuracy of 71.43 % ( using half of the data for train and the other half for test)
