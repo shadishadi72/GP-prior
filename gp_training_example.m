@@ -18,36 +18,43 @@ rng(1)
 likfunc = @likErf; %link function
 infFun = @infEP; %inference method
 
-train_iter = 10;
+train_iter = 100;
 
 
 
-[X_train_hrv,y_train_hrv,X_test_hrv,y_test_hrv] = data_loading_cpt(all_feat_gp);
-[X_train_eda,y_train_eda,X_test_eda,y_test_eda] = data_loading_cpt_cvx(feat_eda_cold,feat_eda_cold_rest,cold_new_zscore,cold_rest_new_zscore);
+%  [X_train_hrv,y_train_hrv,X_test_hrv,y_test_hrv] = data_loading_cpt(all_feat_gp);
+ [X_train_eda,y_train_eda,X_test_eda,y_test_eda] = data_loading_cpt_cvx(feat_eda_cold,feat_eda_cold_rest,cold_new_zscore,cold_rest_new_zscore);
+
+
 % HRV only% 
-% X_train=X_train(:,[1:5]);
-% X_test=X_test(:,[1:5]);
-
+% X_train=X_train_hrv(:,[1:5]);
+% X_test=X_test_hrv(:,[1:5]);
+% y_train=y_train_hrv;
+% y_test=y_test_hrv;
 
 
 
 
 % EDA standard and HRV standard%  I have to exclude sub 3 and 23 from
 % standard EDA% 
-X_train_eda=X_train_eda([1:2,4:17,19:end],:); % 3,18 
-X_test_eda=X_test_eda([1:8,10:23,25:end],:); % 9,24
+% X_train_eda=X_train_eda([1:2,4:16,18:end],:); % 3,17 
+% X_test_eda=X_test_eda([1:8,10:22,24:end],:); % 9,23
 % eda standard+edasymp + hrv+edahf
-X_train=[X_train_hrv,X_train_eda(:,[1:8])];
-X_test=[X_test_hrv,X_test_eda(:,[1:8])];
+% X_train=[X_train_hrv,X_train_eda(:,[1:8])];
+% X_test=[X_test_hrv,X_test_eda(:,[1:8])];
+% y_train=y_train_hrv;
+% y_test=y_test_hrv;
 
-y_train=y_train_hrv;
-y_test=y_test_hrv;
-
-
+% 
+% EDA standard 
+X_train=X_train_eda;
+X_test=X_test_eda;
+y_train=y_train_eda;
+y_test=y_test_eda;
 
 % Zscore normalization%
-% X_train=my_zscore(X_train);
-% X_test=my_zscore(X_test);
+% X_train=my_zscore2(X_train);
+% X_test=my_zscore2(X_test);
 
 % max-min normalization%
 % [X_train,X_test] = normalise_train_test(X_train,X_test);
@@ -55,14 +62,17 @@ y_test=y_test_hrv;
 
 %% training of the GP
 disp('Training GP')
- meanfunc = @meanZero;
-% meanfunc = @meanLinear;
+%  meanfunc = @meanZero;
+ meanfunc = @meanLinear;
+%  meanfunc = {@linear_excluding,[]};
+
 
 covfunc = @covSEard;
-ell = 1.0;
-sf = 1.0;
+ell = 2.0;
+sf =2.0;
 hyp.cov = log([ones(1,size(X_train,2))*ell, sf]);
-% hyp.mean = log(ones(size(X_train,2),1));
+hyp.mean = [];
+hyp.mean = log(ones(size(X_train,2),1));
 hyp = minimize(hyp, @gp, -train_iter, infFun, meanfunc, covfunc, likfunc, X_train, y_train);
 [a, b, c, pred_var, lp, post_local] = gp(hyp, infFun, meanfunc, ...
     covfunc, likfunc, X_train, y_train, X_test, ones(size(X_test,1), 1));
@@ -173,11 +183,18 @@ for ii = 1:length(bound_comp_opts.points_to_analyse_vec)
 end
 feature_importance = feature_importance/length(bound_comp_opts.points_to_analyse_vec);
 
-
+% addpath(genpath('/Users/shadi/Downloads/cvx'))
+% rmpath('/Users/shadi/Downloads/cvx/cvx/lib/narginchk_:')
 plot(bound_comp_opts.epsilons_vec,feature_importance,'LineWidth',2.0)
 grid on
 xlabel('epsilon');
 ylabel('Average Feature Importance');
 legend({'Feature 1','Feature 2','Feature 3','Feature 4','Feature 5','Feature 6','Feature 7'})
+feature_order_eda_cvx={'SMNA(max)';'SMNA(sum)';'SMNA(nom)';'phasic(mean)';'phasic(std)';'tonic(mean)';'tonic(std)';'tonic(max)';'edasymp'};
+feature_order_eda_hrv={'mu','var','lf','hf','lfhf','edasymp','edahf'};
+feature_order_hrv={'mu','var','lf','hf','lfhf'};
+
+legendflex(feature_order_eda_cvx);
+% legend({'Feature 1';'Feature 2';'Feature 3';'Feature 4';'Feature 5';'Feature 6';'Feature 7'})
 
 
