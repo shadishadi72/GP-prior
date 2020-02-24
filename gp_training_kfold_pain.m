@@ -117,8 +117,8 @@ all_pred=[];
     
     %  meanfunc = @meanConst;
     
-        meanfunc = @meanLinear;
-      hyp.mean = log(ones(size(X_train,2)-1,1));
+%         meanfunc = @meanLinear;
+%       hyp.mean = log(ones(size(X_train,2)-1,1));
       
 % ml = {@meanLinear};
 % % meanfunc=@meanMask;
@@ -136,9 +136,9 @@ all_pred=[];
    
 
 %  % adding features in priro 
-%  meanfunc = @simple_feature_phasic;
-%  no_feat=8;
-%   hyp.mean = log(ones(no_feat,1));   
+  meanfunc = @simple_feature_phasic;
+  no_feat=8;
+ hyp.mean = log(ones(no_feat,1));   
     
     
     
