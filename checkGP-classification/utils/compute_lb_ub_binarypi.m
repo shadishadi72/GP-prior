@@ -15,8 +15,39 @@ global discrete_time
 global inference_time
 
 %Minimum Case:
-
+ 
 %1 - I compute the minimum latent min value
+
+
+
+
+if isequal(params_for_gp_toolbox.meanfunc,@simple_feature_phasic)
+    if isempty(params_for_gp_toolbox.feats_extrema) || bound_comp_opts.feat_extrema_every_iter
+        disp('I am updating feat extrema, this might take a bit...')
+        if isempty(params_for_gp_toolbox.feats_extrema)
+            params_for_gp_toolbox.feats_extrema = [inf(length(params_for_gp_toolbox.hyp.mean),1),-inf(length(params_for_gp_toolbox.hyp.mean),1)];
+        end
+        find_pix_2_mod = find(x_U > x_L);
+        assert(length(find_pix_2_mod) <= 1); %other things will need to be done if we wanna do more then OAT. Like grid search for two variables, and some heuristic stuff for more than that
+        ts = linspace( x_L(find_pix_2_mod) , x_U(find_pix_2_mod), 10 );
+        x_curr =  x_U;
+        for it =  1:length(ts)
+            x_curr(find_pix_2_mod) = ts(it);
+            [~,~,feat_mat] = simple_feature_phasic(params_for_gp_toolbox.hyp.mean,x_curr);
+            disp('')
+            for i_f = 1:length(feat_mat)
+                if feat_mat(i_f) < params_for_gp_toolbox.feats_extrema(i_f,1)
+                    params_for_gp_toolbox.feats_extrema(i_f,1) = feat_mat(i_f);
+                end
+                if feat_mat(i_f) > params_for_gp_toolbox.feats_extrema(i_f,2)
+                    params_for_gp_toolbox.feats_extrema(i_f,2) = feat_mat(i_f);
+                end
+            end
+            
+        end
+        
+    end
+end
 
 
 switch bound_comp_opts.likmode
@@ -33,11 +64,13 @@ switch bound_comp_opts.likmode
                     %1 - first I compute the optimal mean value
                     if strcmp(max_or_min,'min')
                         [mu_star,x_mu_star] = compute_lower_bound_mu_sqe(trainedSystem,x_L,x_U,params_for_gp_toolbox.theta_vec,...
-                            params_for_gp_toolbox.sigma,z_i_L_vec,z_i_U_vec,params_for_gp_toolbox.meanfunc,params_for_gp_toolbox.hyp.mean);
+                            params_for_gp_toolbox.sigma,z_i_L_vec,z_i_U_vec,params_for_gp_toolbox.meanfunc,params_for_gp_toolbox.hyp.mean,...
+                        params_for_gp_toolbox.feats_extrema);
                         mu_flag = mu_star;
                     else
                          [mu_star,x_mu_star] = compute_upper_bound_mu_sqe(trainedSystem,x_L,x_U,params_for_gp_toolbox.theta_vec,...
-                            params_for_gp_toolbox.sigma,z_i_L_vec,z_i_U_vec,params_for_gp_toolbox.meanfunc,params_for_gp_toolbox.hyp.mean);
+                            params_for_gp_toolbox.sigma,z_i_L_vec,z_i_U_vec,params_for_gp_toolbox.meanfunc,params_for_gp_toolbox.hyp.mean,-inf,...
+                        params_for_gp_toolbox.feats_extrema);
                         mu_flag =  - mu_star;
                     end
                     %2 - I then compute the optimal variance value depending on

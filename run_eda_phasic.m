@@ -60,10 +60,10 @@ mean_t=mean(tonic_text);
 std_t=std(tonic_text);
 
 %% edasymp
-pband_mean=cal_edasymp(data,fs_d);
+pband_mean=cal_edasymp2(data,fs_d);
 
-%    feat_mat=[mean_ph,std_ph,max_pks,sum_pks,no_pks,mean_t,std_t,pband_mean];
-     feat_mat=[mean_ph,std_ph,max_pks,sum_pks,no_pks];
+    feat_mat=[mean_ph,std_ph,max_pks,sum_pks,no_pks,mean_t,std_t,pband_mean];
+%     feat_mat=[mean_ph,std_ph,max_pks,sum_pks,no_pks];
 %       feat_mat=[mean_t,std_t];
 
 

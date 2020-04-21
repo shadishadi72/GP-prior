@@ -18,6 +18,6 @@ params_for_gp_toolbox.covfunc = covfunc;
 params_for_gp_toolbox.likfunc = likfunc;
 params_for_gp_toolbox.sigma =  exp(hyp.cov(end)).^2;
 params_for_gp_toolbox.theta_vec = 1./(2.*(exp(hyp.cov(1:(end-1))).^2));
-
+params_for_gp_toolbox.feats_extrema = [];
 
 end
