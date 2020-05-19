@@ -84,7 +84,7 @@ for ii=1:max(subj)
     
     no_feat = length(feat_group);
     
-    meanfunc = {@simple_feature_phasic_poly,feat_group};
+    meanfunc = {@simple_feature_phasic_partial_feats,feat_group};
     hyp.mean = log(ones(no_feat,1));
     
     
