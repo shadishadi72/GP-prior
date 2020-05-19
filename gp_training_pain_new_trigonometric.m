@@ -1,16 +1,16 @@
 
-clear all %#ok<CLALL>
-close all
+clear all
 clc
-
+% clc
+% cd('/Users/shadi/Desktop/PhD_projects/GP_work/GP-prior')
 run('toolbox/gpml-matlab-master/startup.m')
 
 addpath(genpath('./'))
 
+load('dataset_pain_04')
 
-load('dataset_deap_m1.mat')
+dataset_hrveda=dataset_pain_04;
 
-dataset_hrveda=dataset_deap_m1;
 
 %% just EDA%%
 
@@ -35,11 +35,10 @@ dataset_hrveda_downsamp(:,[2:end-1])=dataset_hrveda_down;
 dataset_hrveda_downsamp(:,end)=dataset_hrveda(:,end);
 
 
-
-
-
 dataset_fin=dataset_hrveda_downsamp;
 
+
+% % for LOSO
 subj=dataset_fin(:,1);
 dataset_fin=dataset_fin(:,[2:end]);
 
@@ -47,23 +46,26 @@ dataset_fin=dataset_fin(:,[2:end]);
 all_label=[];
 all_lpex=[];
 all_pred=[];
-train_iter =25;
+train_iter = 25;
+
 
 tic
-for ii=1:max(subj)
+delete(gcp('nocreate'))
+parpool(30)
+parfor ii=1:max(subj)
     disp( ii)
     %
     class_score=0;
     
+    
+    %% for LOSO
+    %
     ix=find(subj==ii);
     trainingSet=dataset_fin;
     X_test=trainingSet(ix,:);
     
     trainingSet(ix,:)=[];
     X_train=trainingSet(:,:);
-    
-    [X_train(:,1:end-1),mu,sigma]=my_zscore(trainingSet(:,1:end-1));
-    
     
     
     %% training of the GP
@@ -76,32 +78,39 @@ for ii=1:max(subj)
     % choice for cov functions
     covfunc = @covSEard;
     hyp.cov = log([ones(1,size(X_train,2)-1)*ell, sf]);
+    % %
+    
+    
     
     
     %  % adding features in priro
-    meanfunc = @simple_feature_phasic;
     no_feat=8;
-    hyp.mean = log(ones(no_feat,1));
+    %meanfunc = @simple_feature_phasic;
+    
+    %hyp.mean = log(ones(no_feat,1));
+    
+    %     hyp for meanWSPC
+    degree=2;
+    meanfunc = {@simple_feature_phasic_trig,degree};
+    hyp.mean = log(ones((no_feat+2)*degree,1));
+    
+    
+    
+    
+    
     
     
     hyp2 = minimize(hyp, @gp, -train_iter, infFun, meanfunc, covfunc, likfunc, X_train(:,[1:end-1]),X_train(:,end));
     
     
-    mu2=repmat(mu,size( X_test(:,1:end-1),1),1);
-    sigma2=repmat(sigma,size( X_test(:,1:end-1),1),1);
-    %
-    %
-    %
     [a, b, c, pred_var, lp, post_local] = gp(hyp2, infFun, meanfunc, ...
-        covfunc, likfunc, X_train(:,[1:end-1]), X_train(:,end), (X_test(:,1:end-1)-mu2)./sigma2 ,ones(size(X_test,1), 1));
+        covfunc, likfunc, X_train(:,[1:end-1]), X_train(:,end), X_test(:,1:end-1),ones(size(X_test,1), 1));
     %
-    
     pred_label=zeros(size( X_test,1),1);
     pred_label(exp(lp) >= 0.5) = 1; %% rest
     pred_label(exp(lp) < 0.5) = -1;  %% cpt
-    %
-    %      pred_label(exp(lp) > 0.51 & exp(lp) <0.999 ) = 1; %% rest
-    %        pred_label(exp(lp) < 0.5 & exp(lp) > 0.001) = -1;  %% cpt
+    
+    
     
     label=X_test(:,end);
     all_label=[all_label;label];
@@ -112,8 +121,18 @@ for ii=1:max(subj)
     pred=pred_label;
     all_pred=[all_pred;pred];
     
+    %  %% interpretability
+    % %
+    X_train_r=X_train(:,[1:end-1]);
+    X_test_r=X_test(:,[1:end-1]);
+    y_train_r=X_train(:,end);
+    trained_model_pain(ii).X_train=X_train;
+    trained_model_pain(ii).X_test=X_test;
+    trained_model_pain(ii).hyp=hyp2;
     
 end
+
+
 toc
 
 
@@ -127,10 +146,19 @@ cd=confusionmat(Final_decision,all_label(:,end));
 se=cd(1,1)/(cd(1,1)+cd(2,1))*100;
 sp=cd(2,2)/(cd(1,2)+cd(2,2))*100;
 
+% when the inference fails
+indi=find(Final_decision);
+deci2=Final_decision(indi);
+label2=all_label(indi);
+cd2=confusionmat(deci2,label2);
+se2=cd2(1,1)/(0.5*size(dataset_fin,1))*100;
+sp2=cd2(2,2)/(0.5*size(dataset_fin,1))*100;
+acc2=(se2+sp2)/2;
 
 
 res=[se;sp;acc];
-
+%    res_all(i).res=100-res;
+%    end
 disp(res)
 
 % for F1 score

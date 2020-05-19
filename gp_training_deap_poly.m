@@ -79,9 +79,12 @@ for ii=1:max(subj)
     
     
     %  % adding features in priro
-    meanfunc = @simple_feature_phasic;
+    
     no_feat=8;
-    hyp.mean = log(ones(no_feat,1));
+    
+    degree=2;
+    meanfunc = {@simple_feature_phasic_poly,degree};
+    hyp.mean = log(ones(degree*no_feat,1));
     
     
     hyp2 = minimize(hyp, @gp, -train_iter, infFun, meanfunc, covfunc, likfunc, X_train(:,[1:end-1]),X_train(:,end));

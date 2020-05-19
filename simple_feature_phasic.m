@@ -4,7 +4,7 @@ no_feat=8;
 %fs_d=2;
 % no_feat=size(feat_mat,2);
 
-global fs_d
+fs_d = 32;
 
 if nargin<2, m = int2str(no_feat); return; end             % report number of hyperparameters
 % f = mean(x,2);
