@@ -19,10 +19,10 @@ switch bound_comp_opts.likmode
         aux = tic;
         for ii = 1:params_for_gp_toolbox.nout
             [mu_l(ii),x_mu_l] = compute_lower_bound_mu_sqe(trainedSystem(:,ii),x_L,x_U,params_for_gp_toolbox.theta_vec,...
-                params_for_gp_toolbox.sigma,z_i_L_vec,z_i_U_vec);
+                params_for_gp_toolbox.sigma,z_i_L_vec,z_i_U_vec,[],[],[]);
             %
             [mu_u(ii),x_mu_u] = compute_upper_bound_mu_sqe(trainedSystem(:,ii),x_L,x_U,params_for_gp_toolbox.theta_vec,...
-                params_for_gp_toolbox.sigma,z_i_L_vec,z_i_U_vec,mu_l(ii));
+                params_for_gp_toolbox.sigma,z_i_L_vec,z_i_U_vec,[],[],mu_l(ii),[]);
             x_candidates = [x_candidates;x_mu_l;x_mu_u];
         end
         mu_time = mu_time + toc(aux);
