@@ -1,4 +1,4 @@
-function [sigma_l,x_sigma_l,sigma_u,x_sigma_u] = compute_upper_lower_and_bound_sigma_sqe_quad_prog(x_L,x_U,theta_vec,sigma_prior,z_i_L_vec,z_i_U_vec,bound_comp_opts,mu_sigma_bounds,low_or_up)
+function [sigma_l,x_sigma_l,sigma_u,x_sigma_u] = compute_upper_lower_and_bound_sigma_sqe_quad_prog(params_for_gp_toolbox,x_L,x_U,theta_vec,sigma_prior,z_i_L_vec,z_i_U_vec,bound_comp_opts,mu_sigma_bounds,low_or_up)
 if nargin < 9
     low_or_up = 'both';
 end
@@ -58,11 +58,11 @@ if flagUpdateUB || flagUpdateLB
         a_ij_U_sum = 0;
         for jj = 1:m
             if x_L(jj) < x_U(jj)
-                fun_quad_j = @(x)( theta_vec(jj) * (x - training_data(ii,jj) )^2   );
-                d_fun_quad_j = @(x)( 2*theta_vec(jj) * (x - training_data(ii,jj) )   );
+                fun_quad_j = @(x)( theta_vec(jj) * (x - params_for_gp_toolbox.training_data(ii,jj) )^2   );
+                d_fun_quad_j = @(x)( 2*theta_vec(jj) * (x - params_for_gp_toolbox.training_data(ii,jj) )   );
                 [a_ij_L,b_ij_L,a_ij_U,b_ij_U] = convex_bounds(x_L(jj),x_U(jj), fun_quad_j, d_fun_quad_j);
             else
-                a_ij_L = theta_vec(jj) * (x_L(jj) - training_data(ii,jj) )^2;
+                a_ij_L = theta_vec(jj) * (x_L(jj) - params_for_gp_toolbox.training_data(ii,jj) )^2;
                 a_ij_U = a_ij_L;
                 b_ij_L = 0;
                 b_ij_U = 0;
@@ -87,7 +87,7 @@ end
 if flagUpdateUB
     %disp('Recomputing variance upper bound...')
     Q = [zeros(m,m), zeros(m,n);
-        zeros(n,m),R_inv];
+        zeros(n,m),params_for_gp_toolbox.R_inv];
     
     opts = optimoptions('quadprog');
     opts.Display = 'off';
@@ -182,14 +182,14 @@ if flagUpdateLB
     temp2 = toc(aux);
     
     B_lin = B;
-    B_lin(:,(m+1):end) = B_lin(:,(m+1):end)*U;
+    B_lin(:,(m+1):end) = B_lin(:,(m+1):end)*params_for_gp_toolbox.U;
     
     b_lin_obj_vec = zeros(n,1);
     a_lin_obj_sum = 0;
     
     for ii = 1:length(b_lin_obj_vec)
-        fun_diag_quad_i = @(r)(- Lambda(ii)*r.^2);
-        d_fun_diag_quad_i = @(r)(- 2*Lambda(ii)*r);
+        fun_diag_quad_i = @(r)(- params_for_gp_toolbox.Lambda(ii)*r.^2);
+        d_fun_diag_quad_i = @(r)(- 2*params_for_gp_toolbox.Lambda(ii)*r);
         [a_i_L,b_lin_obj_vec(ii),~,~] = concave_bounds(r_L_hat(ii),r_U_hat(ii), fun_diag_quad_i, d_fun_diag_quad_i);
         a_lin_obj_sum = a_lin_obj_sum + a_i_L;
 

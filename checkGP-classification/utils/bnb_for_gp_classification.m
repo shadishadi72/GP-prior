@@ -26,7 +26,7 @@ aux_stats = tic;
 numOfIterB4Display = 1000;
 
 
-pixels2modify = bound_comp_opts.pix_2_mod;
+pixels2modify = find(x_L < x_U);
 %and this is used to introduce compact representation for the regions (as trivial sides are easily reconstructed from x_L)
 region = { [x_L(pixels2modify);x_U(pixels2modify)] };
 

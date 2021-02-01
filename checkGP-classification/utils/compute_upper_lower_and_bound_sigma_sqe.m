@@ -1,11 +1,11 @@
-function [sigma_l,x_sigma_l,sigma_u,x_sigma_u] = compute_upper_lower_and_bound_sigma_sqe(x_L,x_U,theta_vec,sigma_prior,z_i_L_vec,...
+function [sigma_l,x_sigma_l,sigma_u,x_sigma_u] = compute_upper_lower_and_bound_sigma_sqe(params_for_gp_toolbox,x_L,x_U,theta_vec,sigma_prior,z_i_L_vec,...
     z_i_U_vec,bound_comp_opts,mu_sigma_bounds,low_or_up,offset_row,offset_cols)
 
-if nargin < 11
+if nargin < 12
     offset_cols = 0;
-    if nargin < 10
+    if nargin < 11
         offset_row = 0;
-        if nargin < 9
+        if nargin < 10
             low_or_up = 'both';
         end
     end
@@ -22,14 +22,12 @@ sigma_u = [];
 x_sigma_u = [];
 
 
-global training_data
-global R_inv
-global theta_vec_train_squared
+
 
 %R_inv = sigma_prior * R_inv;
 
-n = size(training_data,1);
-m = size(training_data,2);
+n = size(params_for_gp_toolbox.training_data,1);
+m = size(params_for_gp_toolbox.training_data,2);
 
 %z_i_L_vec = zeros(1,n);
 %z_i_U_vec = zeros(1,n);
@@ -48,7 +46,7 @@ a_il_sum_L = 0;
 
 for ii = 1:n
     
-    r_inv_ii = R_inv(offset_row + ii, offset_cols + (1:ii));
+    r_inv_ii = params_for_gp_toolbox.R_inv(offset_row + ii, offset_cols + (1:ii));
     
     
     
@@ -93,10 +91,10 @@ for ii = 1:n
 end
 
 
-C_U = 2 * B_sum_U * theta_vec_train_squared;
+C_U = 2 * B_sum_U * params_for_gp_toolbox.theta_vec_train_squared;
 
 
-C_L = 2 * B_sum_L * theta_vec_train_squared;
+C_L = 2 * B_sum_L * params_for_gp_toolbox.theta_vec_train_squared;
 
 
 H_U = 4*sum(B_sum_U) * theta_vec;
@@ -104,12 +102,12 @@ H_L = 4*sum(B_sum_L) * theta_vec;
 
 f_U = zeros(m,1);
 for  jj = 1:m
-    f_U(jj) = -4*theta_vec(jj) * B_sum_U*training_data(:,jj);
+    f_U(jj) = -4*theta_vec(jj) * B_sum_U*params_for_gp_toolbox.training_data(:,jj);
 end
 
 f_L = zeros(m,1);
 for  jj = 1:m
-    f_L(jj) = -4*theta_vec(jj) * B_sum_L*training_data(:,jj);
+    f_L(jj) = -4*theta_vec(jj) * B_sum_L*params_for_gp_toolbox.training_data(:,jj);
 end
 
 

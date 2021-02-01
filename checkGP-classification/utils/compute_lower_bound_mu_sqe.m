@@ -1,8 +1,7 @@
 %function [lb,x_mu_lb] = compute_lower_bound_mu_sqe(y_i_vec,x_L,x_U,theta_vec,sigma_prior,training_data)
-function [lb,x_mu_lb] = compute_lower_bound_mu_sqe(y_i_vec,x_L,x_U,theta_vec,sigma_prior,z_i_L_vec,z_i_U_vec,meanfunc,hyp_mean,feats_extrema)
+function [lb,x_mu_lb] = compute_lower_bound_mu_sqe(y_i_vec,x_L,x_U,theta_vec,sigma_prior,z_i_L_vec,z_i_U_vec,meanfunc,hyp_mean,feats_extrema,training_data,theta_vec_train_squared)
 
-global training_data
-global theta_vec_train_squared
+
 
 %scaling output with a priori variance
 y_i_vec = y_i_vec*sigma_prior;

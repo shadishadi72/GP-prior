@@ -1,5 +1,5 @@
 function [pi_LL,pi_UU,pi_LU,pi_UL,iter_count,exitFlag] = main_pi_hat_computation(mode,testPoint,testIdx,...
-params_for_gp_toolbox,bound_comp_opts,varargin)
+params_for_gp_toolbox,bound_comp_opts,x_L,x_U,varargin)
 
 % --exitFlags coming from branch and bound --
 % 0 - did not run bnb
@@ -12,8 +12,7 @@ params_for_gp_toolbox,bound_comp_opts,varargin)
 
 
 
-global theta_vec_train_squared
-global training_data
+
 
 if mode == 'all'
     minmode = true;
@@ -32,17 +31,17 @@ end
 
 %in the multi-class case, if you wanna have different kernels you need to
 %put an additional for loop around this block of code
-theta_vec_train_squared = zeros(size(training_data,1),1);
-for ii = 1:size(training_data,1)
-    theta_vec_train_squared(ii) = dot(params_for_gp_toolbox.theta_vec,training_data(ii,:).^2);
+params_for_gp_toolbox.theta_vec_train_squared = zeros(size(params_for_gp_toolbox.training_data,1),1);
+for ii = 1:size(params_for_gp_toolbox.training_data,1)
+    params_for_gp_toolbox.theta_vec_train_squared(ii) = dot(params_for_gp_toolbox.theta_vec,params_for_gp_toolbox.training_data(ii,:).^2);
 end
 
 
 
 
 %if isfield(bound_comp_opts,'x_L')
-    x_L = bound_comp_opts.x_L;
-    x_U = bound_comp_opts.x_U;                                        
+%    x_L = bound_comp_opts.x_L;
+%    x_U = bound_comp_opts.x_U;                                        
 %else
 %    [x_L, x_U] = compute_hyper_rectangle(bound_comp_opts.epsilon,testPoint,...
 %        bound_comp_opts.pix_2_mod,bound_comp_opts.constrain_2_one);    

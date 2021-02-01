@@ -1,6 +1,5 @@
-function [trainedSystem,S,params_for_gp_toolbox]= build_gp_trained_params(hyp,n_tr,infFun,meanfunc,covfunc,likfunc)
+function [trainedSystem,S,params_for_gp_toolbox]= build_gp_trained_params(hyp,n_tr,infFun,meanfunc,covfunc,likfunc,post)
 
-global post
 
 %getting trained System out of the trained gp:
 % this is the vector such that latent_mu = trainedSystem*Covariance(test)
@@ -19,5 +18,6 @@ params_for_gp_toolbox.likfunc = likfunc;
 params_for_gp_toolbox.sigma =  exp(hyp.cov(end)).^2;
 params_for_gp_toolbox.theta_vec = 1./(2.*(exp(hyp.cov(1:(end-1))).^2));
 params_for_gp_toolbox.feats_extrema = [];
+params_for_gp_toolbox.post = post;
 
 end

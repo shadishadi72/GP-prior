@@ -33,7 +33,7 @@ if strcmp(gp_training_opts.kernel,'sqe')
         end
         K =  get_K_sqe(X1,X2,gp_training_opts.kernel_params.sigma,gp_training_opts.kernel_params.theta_vec);
     else
-        K =  get_K_sqe(X1,X2,gp_training_opts.sigma,gp_training_opts.theta_vec);
+        K =  get_K_sqe(X1,X2,gp_training_opts.kernel_params.sigma,gp_training_opts.kernel_params.theta_vec);
     end
 elseif strcmp(gp_training_opts.kernel,'ReLU')
     %implements ReLU kernel. For performance reasone the code assumes that
