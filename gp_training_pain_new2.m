@@ -7,7 +7,8 @@
 clear all
 clc
 % run('toolbox/gpml-matlab-master/startup.m')
-
+addpath(genpath('toolbox/gpml-matlab-master/'))
+addpath(genpath('checkGP-classification'))
 % addpath(genpath('/Users/shadi/Desktop/PhD_projects/GP_work/GP-prior'))
 
 %  load('dataset_pain_04')
@@ -134,6 +135,7 @@ train_iter =25;
 %       LOSO
 tic
 
+parpool(2)
 for ii=1:max(subj)
     disp( ii)
     %
@@ -287,7 +289,7 @@ for ii=1:max(subj)
      
     
    
-                            [a, b, c, pred_var, lp, post_local] = gp(hyp2, infFun, meanfunc, ...
+                            [a, b, c, pred_var, lp, post] = gp(hyp2, infFun, meanfunc, ...
                                   covfunc, likfunc, X_train(:,[1:end-1]), X_train(:,end), (X_test(:,1:end-1)-mu2)./sigma2 ,ones(size(X_test,1), 1));
     
 %                          [a, b, c, pred_var, lp, post_local] = gp(hyp2, infFun, meanfunc, ...
@@ -315,35 +317,33 @@ X_train_r=X_train(:,[1:end-1]);
 X_test_r=X_test(:,[1:end-1]);
 y_train_r=X_train(:,end);
 
-global post
-post = post_local;
 
 %Code parameters
 bound_comp_opts = default_parameter_checkGP_OAT();
 
-[trainedSystem,S,params_for_gp_toolbox] = build_gp_trained_params(hyp2,size(X_train_r,1),infFun,meanfunc,covfunc,likfunc);
+[trainedSystem,S,params_for_gp_toolbox] = build_gp_trained_params(hyp2,size(X_train_r,1),infFun,meanfunc,covfunc,likfunc,post);
 
 %Check I am getting the correct parameters
 check_manual_and_tool_prediction_agree(X_test_r,X_train_r,params_for_gp_toolbox,trainedSystem,S,c,pred_var)
 
-global training_data
-global training_labels
+%global training_data
+%global training_labels
 
-global loop_vec2
-training_data = X_train_r;
-training_labels = y_train_r;
+%global loop_vec2
+params_for_gp_toolbox.training_data = X_train_r;
+params_for_gp_toolbox.training_labels = y_train_r;
 
 clear X_train_r y_train_r
 clear Kstar Kstarstar
 
 S = S*params_for_gp_toolbox.sigma;
-global R_inv
-global U
-global Lambda
-R_inv = S;
-R_inv = 0.5*(R_inv + R_inv');
-[U,Lambda] = eig(R_inv);
-Lambda = diag(Lambda);
+%global R_inv
+%global U
+%global Lambda
+params_for_gp_toolbox.R_inv = S;
+params_for_gp_toolbox.R_inv = 0.5*(params_for_gp_toolbox.R_inv + params_for_gp_toolbox.R_inv');
+[params_for_gp_toolbox.U,params_for_gp_toolbox.Lambda] = eig(params_for_gp_toolbox.R_inv);
+params_for_gp_toolbox.Lambda = diag(params_for_gp_toolbox.Lambda);
 
 pi_LLs = cell(length(bound_comp_opts.points_to_analyse_vec),1);
 pi_UUs = cell(length(bound_comp_opts.points_to_analyse_vec),1);
@@ -353,33 +353,34 @@ bound_comp_opts.points_to_analyse_vec=size(X_test_r,1); % shadi's change
 feature_magnitude = cell(length(bound_comp_opts.points_to_analyse_vec),1);
 %loop over test points
 
- for idx_point = 1:length(bound_comp_opts.points_to_analyse_vec)
+
+ parfor idx_point = 1:length(bound_comp_opts.points_to_analyse_vec)
     disp(['Test point idx: ' int2str(idx_point) '/' int2str(length(bound_comp_opts.points_to_analyse_vec)) ]);
     testIdx = bound_comp_opts.points_to_analyse_vec(idx_point);
     testPoint = X_test_r(testIdx,:);
     if strcmp(bound_comp_opts.pix_2_mod,'all')
-        bound_comp_opts.pix_2_mod = 1:length(testPoint);
+        pix_2_mod = 1:length(testPoint);
     end
     %loop over epsilon values
-    pi_LLs{idx_point} = zeros(length(bound_comp_opts.epsilons_vec),length(bound_comp_opts.pix_2_mod));
-    pi_UUs{idx_point} = zeros(length(bound_comp_opts.epsilons_vec),length(bound_comp_opts.pix_2_mod));
-    pi_LUs{idx_point} = zeros(length(bound_comp_opts.epsilons_vec),length(bound_comp_opts.pix_2_mod));
-    pi_ULs{idx_point} = zeros(length(bound_comp_opts.epsilons_vec),length(bound_comp_opts.pix_2_mod));
-    feature_magnitude{idx_point} = zeros(length(bound_comp_opts.epsilons_vec),length(bound_comp_opts.pix_2_mod));
+    pi_LLs{idx_point} = zeros(length(bound_comp_opts.epsilons_vec),length(pix_2_mod));
+    pi_UUs{idx_point} = zeros(length(bound_comp_opts.epsilons_vec),length(pix_2_mod));
+    pi_LUs{idx_point} = zeros(length(bound_comp_opts.epsilons_vec),length(pix_2_mod));
+    pi_ULs{idx_point} = zeros(length(bound_comp_opts.epsilons_vec),length(pix_2_mod));
+    feature_magnitude{idx_point} = zeros(length(bound_comp_opts.epsilons_vec),length(pix_2_mod));
     for idx_eps = 1:length(bound_comp_opts.epsilons_vec)
-        bound_comp_opts.epsilon = bound_comp_opts.epsilons_vec(idx_eps);
-        disp(['Analysis for epsilon = ', num2str(bound_comp_opts.epsilon) ]);
+        epsilon = bound_comp_opts.epsilons_vec(idx_eps);
+        disp(['Analysis for epsilon = ', num2str(epsilon) ]);
         assert(strcmp(bound_comp_opts.mod_modus,'OAT'));
         
         %loop over features
-        for idx_pixel = 1:length(bound_comp_opts.pix_2_mod)
-            bound_comp_opts.pix_2_mod_curr = bound_comp_opts.pix_2_mod(idx_pixel);
-            [bound_comp_opts.x_L, bound_comp_opts.x_U] = compute_hyper_rectangle(bound_comp_opts.epsilon,testPoint,...
-                bound_comp_opts.pix_2_mod_curr,bound_comp_opts.constrain_2_one);
+        for idx_pixel = 1:length(pix_2_mod)
+            pix_2_mod_curr = pix_2_mod(idx_pixel);
+            [x_L, x_U] = compute_hyper_rectangle(epsilon,testPoint,...
+                pix_2_mod_curr,bound_comp_opts.constrain_2_one);
             [pi_LLs{idx_point}(idx_eps,idx_pixel),pi_UUs{idx_point}(idx_eps,idx_pixel), pi_LUs{idx_point}(idx_eps,idx_pixel),...
                 pi_ULs{idx_point}(idx_eps,idx_pixel),count,exitFlag] = ...
                 main_pi_hat_computation('all',testPoint,testIdx,...
-                params_for_gp_toolbox,bound_comp_opts,trainedSystem,S);
+                params_for_gp_toolbox,bound_comp_opts,x_L,x_U,trainedSystem,S);
             feature_magnitude{idx_point}(idx_eps,idx_pixel) = pi_UUs{idx_point}(idx_eps,idx_pixel) - pi_LLs{idx_point}(idx_eps,idx_pixel);
             
         end
